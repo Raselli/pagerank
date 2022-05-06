@@ -31,3 +31,37 @@ function load_mailbox(mailbox) {
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
 }
+
+// Send Mail
+  // when inbox.html submit -> send email
+  // fetch('/emails', { method: 'POST'} -> pass values for 'recipients', 'subject', 'body'
+  // .then load users "SENT" box
+
+// Mailbox
+  // if user click on mailbox: INBOX, SENT, ARCHIVE load the requested box
+  // fetch /emails/<mailbox> method: GET
+  // when visit a mailbox -> API should fetch latest mails
+  // active Mailbox name should appear on top: html -> h1 or h2 ?
+  // render each mail in own <div> with: mailaddress of sender, subject, timestamp
+    // Mail: if unread -> background-color = white. else: bgc = grey
+
+//View Mail
+  // when user clicks on mail -> open mail
+  // fetch /emails/<email_id> method: GET
+  // display: sender, recipients, subject, timestamp, body
+  // @inbox.html: add <div> with id for display/hide email body
+    // if email clicked on: fetch /emails/<email_id> method: PUT -> read === True
+
+// Archive and Unarchive
+  // @Inbox: button for archivation.
+  // @Archive: button for unarchive
+  // fetch /emails/<email_id> method: PUT -> archive === True
+  // After archive/unarchive: load Inbox of User
+
+// Reply
+  // @active mail_id body: add Reply button
+  // Reply Button -> open email composition form
+    // pre-fill "recipient" with reply to prev address
+    // pre-fill "subject" with "Re: foo"
+      // if subject begins with a prev. "Re:": add no "Re:"
+    // pre-fill body with "On ${timestamp} ${recipient} wrote:"
