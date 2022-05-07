@@ -30,6 +30,50 @@ function load_mailbox(mailbox) {
 
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
+
+  fetch(`/emails/${mailbox}`)
+  .then(response => response.json())
+  .then(emails => {
+
+      // Load all mails related to this inbox
+      emails.forEach(email => {
+        // create sub-div and add class to it
+        const element = document.createElement('div');
+        const user_address = document.querySelector('h2').innerHTML
+        element.classList.add('mail_frame');
+        
+        // InnerHTML Version faster for big amounts, slower for small amounts vs createElement
+        // InnerHTML unsecure
+        // InnerHTML has bugs when using references
+
+        // TemplateLiterals are a third option
+        // TL are unsecure considering injections 
+
+        //jQuery are a 4th option
+
+// TO DO: do createElement option
+
+        // createElement Version
+        const mail_subject = document.createElement('div');
+        mail_subject.classList.add('mail_titles')
+        mail_subject.innerHTML = `Subject: ${email.subject}`
+
+        // InnerHTML Version
+        element.innerHTML = `<div>Inner Subject: ${email.subject}</div>
+                            <div>From: ${email.sender}</div>
+                            <div>To: ${user_address}</div>
+                            <div>${email.timestamp}</div>
+                            <hr>
+                            <div>${email.body}</div>                            
+                            `;
+
+        document.querySelector('#emails-view').append(element, mail_subject);
+      });
+  })
+  // Catch any errors and log them to the console
+  .catch(error => {
+    console.log('Error:', error);
+  });
 }
 
 // Send Mail
@@ -68,6 +112,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // render each mail in own <div> with: mailaddress of sender, subject, timestamp
     // Mail: if unread -> background-color = white. else: bgc = grey
 
+
+
+    
 //View Mail
   // when user clicks on mail -> open mail
   // fetch /emails/<email_id> method: GET
@@ -76,8 +123,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // if email clicked on: fetch /emails/<email_id> method: PUT -> read === True
 
 // Archive and Unarchive
-
-
   // @Inbox: button for archivation.
   // @Archive: button for unarchive
   // fetch /emails/<email_id> method: PUT -> archive === True
