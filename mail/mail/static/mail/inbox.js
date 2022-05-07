@@ -33,9 +33,32 @@ function load_mailbox(mailbox) {
 }
 
 // Send Mail
-  // when inbox.html submit -> send email
-  // fetch('/emails', { method: 'POST'} -> pass values for 'recipients', 'subject', 'body'
-  // .then load users "SENT" box
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelector('form').onsubmit = function() {
+    fetch('/emails', {
+      method: 'POST',
+      body: JSON.stringify({
+          recipients: document.querySelector('#compose-recipients').value,
+          subject: document.querySelector('#compose-subject').value,
+          body: document.querySelector('#compose-body').value
+      })
+    })
+    .then(response => response.json())
+    .then(result => {
+        // Print result
+        console.log(result);
+    })
+
+    // Catch any errors and log them to the console
+    .catch(error => {
+      console.log('Error:', error);
+    });
+
+    load_mailbox('sent');    
+    // Prevent default submission
+    return false;
+  };
+});
 
 // Mailbox
   // if user click on mailbox: INBOX, SENT, ARCHIVE load the requested box
@@ -53,6 +76,8 @@ function load_mailbox(mailbox) {
     // if email clicked on: fetch /emails/<email_id> method: PUT -> read === True
 
 // Archive and Unarchive
+
+
   // @Inbox: button for archivation.
   // @Archive: button for unarchive
   // fetch /emails/<email_id> method: PUT -> archive === True
