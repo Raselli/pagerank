@@ -35,41 +35,56 @@ function load_mailbox(mailbox) {
   .then(response => response.json())
   .then(emails => {
 
-      // Load all mails related to this inbox
-      emails.forEach(email => {
-        
-        // create sub-div and add class to it
-        const element = document.createElement('div');
-        const user_address = document.querySelector('h2').innerHTML
-        element.classList.add('mail_frame');
+  // Load all mails related to this inbox
+  emails.forEach(email => {
 
-        // creates a div filled with divs containing all info about an email
-        function LoadMail() {
-        const email_box = document.createElement('div');
-        email_box.classList.add('mail_frame');
-        document.querySelector('#emails-view').append(email_box);        
-        
-        const mail_info = [email.subject, email.sender, user_address, email.timestamp, email.body]
-        const mail_deco = ["Subject: ", "From: ", "To: ", "", "<hr>"]
-          for (let i = 0; i < mail_info.length; i++) {
-            var b = document.createElement('b');            
-            var div = document.createElement('div');
-            b.innerHTML = mail_deco[i];
-            div.innerHTML = mail_info[i];
-            div.prepend(b);
-            email_box.append(div);
-          }
-        }
+    // create sub-div and add class to it
+    const element = document.createElement('div');
+    element.classList.add('mail_frame');
 
-        LoadMail();           
+    // creates a div filled with divs containing all info about an email
+    function LoadMail() {
 
+      // Create DIV for an e-mail
+      const email_box = document.createElement('div');
+      email_box.classList.add('mail_frame');
+      email_box.setAttribute("id", `${email.id}`);
+      document.querySelector('#emails-view').append(email_box);        
+      
+      // Change BackgroundColor based on read / not read
+      if (email.read === true) {
+        email_box.style.backgroundColor = 'LightGray';
+      } else {
+        email_box.style.backgroundColor = 'white';
+      }
+      
+      // Create and populate HTML elements inside e-mail DIV
+      const mail_info = [email.subject, email.sender, email.timestamp, email.body]
+      for (let i = 0; i < mail_info.length; i++) {         
+        var span = document.createElement('span');
+        span.innerHTML = mail_info[i];
+        span.classList.add('mailbox_column')
+        email_box.append(span);
+      }
+
+      // Load content of e-mail
+      email_box.addEventListener('click', function() {
+        view_mail(email.id);
       });
-  })
+    }
+
+//TO DO:
+// replace function & fcall by =>
+    LoadMail();
+  });
+})
+
   // Catch any errors and log them to the console
   .catch(error => {
     console.log('Error:', error);
   });
 }
+
 
 // Send Mail
 document.addEventListener('DOMContentLoaded', function() {
@@ -79,11 +94,13 @@ document.addEventListener('DOMContentLoaded', function() {
       body: JSON.stringify({
           recipients: document.querySelector('#compose-recipients').value,
           subject: document.querySelector('#compose-subject').value,
-          body: document.querySelector('#compose-body').value
+          body: document.querySelector('#compose-body').value,
+          read: false
       })
     })
     .then(response => response.json())
     .then(result => {
+
         // Print result
         console.log(result);
     })
@@ -93,29 +110,58 @@ document.addEventListener('DOMContentLoaded', function() {
       console.log('Error:', error);
     });
 
-    load_mailbox('sent');    
+    load_mailbox('sent');  
+
     // Prevent default submission
     return false;
   };
 });
 
-// Mailbox
-  // if user click on mailbox: INBOX, SENT, ARCHIVE load the requested box
-  // fetch /emails/<mailbox> method: GET
-  // when visit a mailbox -> API should fetch latest mails
-  // active Mailbox name should appear on top: html -> h1 or h2 ?
-  // render each mail in own <div> with: mailaddress of sender, subject, timestamp
-    // Mail: if unread -> background-color = white. else: bgc = grey
 
-
-
-    
 //View Mail
-  // when user clicks on mail -> open mail
-  // fetch /emails/<email_id> method: GET
-  // display: sender, recipients, subject, timestamp, body
-  // @inbox.html: add <div> with id for display/hide email body
-    // if email clicked on: fetch /emails/<email_id> method: PUT -> read === True
+function view_mail(id) {
+
+  // Show E-mails Content, Hide Mailboxes,
+  document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#email-view').style.display = 'block'; 
+
+  // Get e-mail data
+  fetch(`/emails/${id}`)
+  .then(response => response.json())
+  .then(email => {
+
+// TODO: replace 2 arrays by dicts
+    const user_address = document.querySelector('h2').innerHTML
+    const mail_info = [email.subject, email.sender, user_address, email.timestamp, email.body]
+    const mail_deco = ["Subject: ", "From: ", "To: ", "", "<hr>"]
+    
+    // Create and populate HTML-elements    
+    for (let i = 0; i < mail_info.length; i++) {
+      var b = document.createElement('b');            
+      var div = document.createElement('div');
+      b.innerHTML = mail_deco[i];
+      div.innerHTML = mail_info[i];
+      div.prepend(b);
+      document.getElementById('email-view').append(div);
+    }
+  })
+
+//TODO: below is not working
+  // Mark e-mail as 'read'
+  fetch(`/emails/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+        archived: false
+    })
+  })
+
+  // Catch any errors and log them to the console
+  .catch(error => {
+    console.log('Error:', error);
+  });
+
+};
+
 
 // Archive and Unarchive
   // @Inbox: button for archivation.
