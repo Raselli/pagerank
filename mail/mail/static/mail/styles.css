@@ -4,8 +4,6 @@ textarea {
 
 .mail_frame {
     border: 1px solid black;
-}
-
-.mail_titles {
-    background-color: grey;
+    padding: 5px;
+    margin-bottom: 20px;
 }

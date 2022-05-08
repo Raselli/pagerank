@@ -37,37 +37,32 @@ function load_mailbox(mailbox) {
 
       // Load all mails related to this inbox
       emails.forEach(email => {
+        
         // create sub-div and add class to it
         const element = document.createElement('div');
         const user_address = document.querySelector('h2').innerHTML
         element.classList.add('mail_frame');
+
+        // creates a div filled with divs containing all info about an email
+        function LoadMail() {
+        const email_box = document.createElement('div');
+        email_box.classList.add('mail_frame');
+        document.querySelector('#emails-view').append(email_box);        
         
-        // InnerHTML Version faster for big amounts, slower for small amounts vs createElement
-        // InnerHTML unsecure
-        // InnerHTML has bugs when using references
+        const mail_info = [email.subject, email.sender, user_address, email.timestamp, email.body]
+        const mail_deco = ["Subject: ", "From: ", "To: ", "", "<hr>"]
+          for (let i = 0; i < mail_info.length; i++) {
+            var b = document.createElement('b');            
+            var div = document.createElement('div');
+            b.innerHTML = mail_deco[i];
+            div.innerHTML = mail_info[i];
+            div.prepend(b);
+            email_box.append(div);
+          }
+        }
 
-        // TemplateLiterals are a third option
-        // TL are unsecure considering injections 
+        LoadMail();           
 
-        //jQuery are a 4th option
-
-// TO DO: do createElement option
-
-        // createElement Version
-        const mail_subject = document.createElement('div');
-        mail_subject.classList.add('mail_titles')
-        mail_subject.innerHTML = `Subject: ${email.subject}`
-
-        // InnerHTML Version
-        element.innerHTML = `<div>Inner Subject: ${email.subject}</div>
-                            <div>From: ${email.sender}</div>
-                            <div>To: ${user_address}</div>
-                            <div>${email.timestamp}</div>
-                            <hr>
-                            <div>${email.body}</div>                            
-                            `;
-
-        document.querySelector('#emails-view').append(element, mail_subject);
       });
   })
   // Catch any errors and log them to the console
