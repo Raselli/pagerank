@@ -39,7 +39,6 @@ function load_mailbox(mailbox) {
   fetch(`/emails/${mailbox}`)
   .then(response => response.json())
   .then(emails => {
-    console.log(emails)
 
     // Load all mails related to this inbox
     emails.forEach(email => {
@@ -85,6 +84,7 @@ function load_mails(email) {
 
   // Load content of e-mail
   email_box.addEventListener('click', function() {
+
     view_mail(email.id);
   });
 }
@@ -139,10 +139,19 @@ function view_mail(id) {
   .then(response => response.json())
   .then(email => {
 
+    // Mark e-mail as 'read'
+    if (email.read === false) {
+      fetch(`/emails/${email.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+            read: true
+        })
+      })
+    }
+
 // TODO: replace 2 arrays by dicts
     // List of items for createElement (below)
-    const user_address = document.querySelector('h2').innerHTML
-    const mail_info = [email.subject, email.sender, user_address, email.timestamp]
+    const mail_info = [email.subject, email.sender, email.recipients, email.timestamp]
     const mail_deco = ["Subject: ", "From: ", "To: ", ""]
     
     // Create and populate HTML-elements 
@@ -215,13 +224,4 @@ function view_mail(id) {
   .catch(error => {
     console.log('Error:', error);
   });
-
-//TODO: below is not working
-  // Mark e-mail as 'read'
-  fetch(`/emails/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify({
-        archived: false
-    })
-  })
 };
