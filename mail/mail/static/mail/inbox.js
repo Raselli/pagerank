@@ -39,15 +39,16 @@ function load_mailbox(mailbox) {
   fetch(`/emails/${mailbox}`)
   .then(response => response.json())
   .then(emails => {
+    console.log(emails)
 
     // Load all mails related to this inbox
     emails.forEach(email => {
 
-      // create sub-div and add class to it
-      const element = document.createElement('div');
-      element.classList.add('mail_frame');
+          // create sub-div and add class to it
+          const element = document.createElement('div');
+          element.classList.add('mail_frame');
 
-      load_mail(email);
+          load_mails(email);
     });
   })
 
@@ -58,7 +59,7 @@ function load_mailbox(mailbox) {
 }
 
 // creates a div filled with divs containing all info about an email
-function load_mail(email) {
+function load_mails(email) {
 
   // Create DIV for an e-mail
   const email_box = document.createElement('div');
@@ -118,14 +119,12 @@ function send_mail() {
 }
 
 
-
 // TODO:
 // split view_mail:
 // - function: handle query selectors = onclick events
 // - function: create elements and populate
 // - function: button archivate
 // - function: button reply
-
 
 //View Mail
 function view_mail(id) {
@@ -162,7 +161,6 @@ function view_mail(id) {
     body.classList.add('email_body');
     body.innerHTML = email.body
 
-
     // Reply Button
     var reply_button = document.createElement('button');
     reply_button.type = 'submit';
@@ -182,7 +180,7 @@ function view_mail(id) {
     }
     document.getElementById('email-view').append(reply_button, archive_button, line, body);
     
-    // Archivation
+    // Archivation Event
     archive_button.addEventListener('click', function() {
       fetch(`/emails/${email.id}`, {
         method: 'PUT',
@@ -196,7 +194,27 @@ function view_mail(id) {
           load_mailbox('inbox');
       });
     })
+
+    // Reply Event
+    reply_button.addEventListener('click', function() {
+        document.querySelector('#email-view').style.display = 'none';
+        document.querySelector('#compose-view').style.display = 'block';
+      
+        // Pre-fill the composition fields
+        document.querySelector('#compose-recipients').value = email.sender;
+        document.querySelector('#compose-body').value = `On ${email.timestamp} ${email.sender} wrote:\n${email.body}`;
+        if (email.subject.substring(0, 4) == 'Re: ') {
+          document.querySelector('#compose-subject').value = email.subject;
+        } else {
+          document.querySelector('#compose-subject').value = 'Re: ' + email.subject;
+        }
+    })
   })
+
+  // Catch any errors and log them to the console
+  .catch(error => {
+    console.log('Error:', error);
+  });
 
 //TODO: below is not working
   // Mark e-mail as 'read'
@@ -206,20 +224,4 @@ function view_mail(id) {
         archived: false
     })
   })
-  
-
-  // Catch any errors and log them to the console
-  .catch(error => {
-    console.log('Error:', error);
-  });
-
 };
-
-
-// Reply
-  // @active mail_id body: add Reply button
-  // Reply Button -> open email composition form
-    // pre-fill "recipient" with reply to prev address
-    // pre-fill "subject" with "Re: foo"
-      // if subject begins with a prev. "Re:": add no "Re:"
-    // pre-fill body with "On ${timestamp} ${recipient} wrote:"
