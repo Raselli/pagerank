@@ -6,9 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#archived').addEventListener('click', () => load_mailbox('archive'));
   document.querySelector('#compose').addEventListener('click', compose_email);
 
-// in wrong function?
   // Send composed e-mail
-  document.querySelector('form').addEventListener('submit', send_mail);
+  document.querySelector('#compose-form').addEventListener('submit', send_mail);
 
   // By default, load the inbox
   load_mailbox('inbox');
@@ -37,18 +36,15 @@ function load_mailbox(mailbox) {
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
 
-// BUG:
+  // Load all mails related to this inbox  
   fetch(`/emails/${mailbox}`)
   .then(response => response.json())
   .then(emails => {
-
-    // Load all mails related to this inbox
     emails.forEach(email => {
 
           // create sub-div and add class to it
           const element = document.createElement('div');
           element.classList.add('mail_frame');
-
           load_mails(email);
     });
   })
@@ -71,8 +67,6 @@ function load_mails(email) {
   // Change BackgroundColor based on read / not read
   if (email.read === true) {
     email_box.style.backgroundColor = 'LightGray';
-  } else {
-    email_box.style.backgroundColor = 'white';
   }
   
   // Create and populate HTML elements inside e-mail DIV
@@ -92,7 +86,8 @@ function load_mails(email) {
 }
 
 // Send Mail
-function send_mail() {
+function send_mail(event) {
+
   fetch('/emails', {
     method: 'POST',
     body: JSON.stringify({
@@ -104,12 +99,12 @@ function send_mail() {
   })
   .then(response => response.json())
   .then(result => {
+
       // Print result
       console.log(result);
   })
-  
-//BUG
-  load_mailbox('sent');
+  .then(load_mailbox('sent'));
+  event.preventDefault();  
 };
 
 
@@ -133,13 +128,6 @@ function view_mail(id) {
   .then(response => response.json())
   .then(email => {
 
-// BUG: 
-// Fetch failed loading: PUT "http://127.0.0.1:8000/emails/45".
-// (anonymous) @ inbox.js:151 
-// Promise.then (async)
-// view_mail @ inbox.js:147
-// (anonymous) @ inbox.js:88
-
     // Mark e-mail as 'read'
     if (email.read === false) {
       fetch(`/emails/${email.id}`, { // === (anonymous) @ inbox.js:151 
@@ -151,7 +139,6 @@ function view_mail(id) {
       .then((response) => response.text())
       .then((text) => text.length ? JSON.parse(text) : {})
     };
-
 
 // TODO: replace 2 arrays by dicts
     // List of items for createElement (below)
@@ -193,10 +180,7 @@ function view_mail(id) {
     }
     document.getElementById('email-view').append(reply_button, archive_button, line, body);
 
-// BUG:
-//inbox.js:208 Fetch failed loading: PUT "http://127.0.0.1:8000/emails/45".
-//(anonymous) @ inbox.js:208
-
+//BUG: after archivation -> inbox doesnt refresh, after unarchive -> opens Inbox
     // Archivation Event
     archive_button.addEventListener('click', function() {
       fetch(`/emails/${email.id}`, { // === inbox.js:208 Fetch failed loading
@@ -205,9 +189,9 @@ function view_mail(id) {
             archived: !email.archived
         })
       })
+// TODO: checkout alternatives to line 199 - 201
       .then((response) => response.text())
       .then((text) => text.length ? JSON.parse(text) : {})
-// return ??
       .then(load_mailbox('inbox'))
     })
 
