@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#archived').addEventListener('click', () => load_mailbox('archive'));
   document.querySelector('#compose').addEventListener('click', compose_email);
 
+// in wrong function?
   // Send composed e-mail
   document.querySelector('form').addEventListener('submit', send_mail);
 
@@ -36,6 +37,7 @@ function load_mailbox(mailbox) {
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
 
+// BUG:
   fetch(`/emails/${mailbox}`)
   .then(response => response.json())
   .then(emails => {
@@ -74,11 +76,11 @@ function load_mails(email) {
   }
   
   // Create and populate HTML elements inside e-mail DIV
-  const mail_info = [email.subject, email.sender, email.timestamp, email.body]
+  const mail_info = [email.sender, email.subject, email.timestamp]
   for (let i = 0; i < mail_info.length; i++) {         
     var span = document.createElement('span');
     span.innerHTML = mail_info[i];
-    span.classList.add('mailbox_column')
+    span.classList.add(`mailbox_column_${i}`)
     email_box.append(span);
   }
 
@@ -102,21 +104,13 @@ function send_mail() {
   })
   .then(response => response.json())
   .then(result => {
-
       // Print result
       console.log(result);
   })
-
-  // Catch any errors and log them to the console
-  .catch(error => {
-    console.log('Error:', error);
-  });
-
-  load_mailbox('sent');  
-
-  // Prevent default submission
-  return false;
-}
+  
+//BUG
+  load_mailbox('sent');
+};
 
 
 // TODO:
@@ -139,20 +133,30 @@ function view_mail(id) {
   .then(response => response.json())
   .then(email => {
 
+// BUG: 
+// Fetch failed loading: PUT "http://127.0.0.1:8000/emails/45".
+// (anonymous) @ inbox.js:151 
+// Promise.then (async)
+// view_mail @ inbox.js:147
+// (anonymous) @ inbox.js:88
+
     // Mark e-mail as 'read'
     if (email.read === false) {
-      fetch(`/emails/${email.id}`, {
+      fetch(`/emails/${email.id}`, { // === (anonymous) @ inbox.js:151 
         method: 'PUT',
         body: JSON.stringify({
             read: true
         })
       })
-    }
+      .then((response) => response.text())
+      .then((text) => text.length ? JSON.parse(text) : {})
+    };
+
 
 // TODO: replace 2 arrays by dicts
     // List of items for createElement (below)
     const mail_info = [email.subject, email.sender, email.recipients, email.timestamp]
-    const mail_deco = ["Subject: ", "From: ", "To: ", ""]
+    const mail_deco = ["Subject: ", "From: ", "To: ", "Timestamp: "]
     
     // Create and populate HTML-elements 
     for (let i = 0; i < mail_info.length; i++) {
@@ -173,36 +177,40 @@ function view_mail(id) {
     // Reply Button
     var reply_button = document.createElement('button');
     reply_button.type = 'submit';
-    reply_button.className = 'btn btn-primary';
-    reply_button.setAttribute("id", `r_${email.id}`);
+    reply_button.className = 'btn btn-sm btn-outline-primary';
+    reply_button.setAttribute('id', 'reply');
     reply_button.innerHTML = 'Reply';
 
     // Archivation Button
     var archive_button = document.createElement('button');
     archive_button.type = 'submit';
-    archive_button.className = 'btn btn-primary';
-    archive_button.setAttribute("id", `a_${email.id}`);
+    archive_button.className = 'btn btn-sm btn-outline-primary';
+    archive_button.setAttribute('id', 'archive');
     if (email.archived === false) {
       archive_button.innerHTML = 'Archive';
     } else {
       archive_button.innerHTML = 'Unarchive';
     }
     document.getElementById('email-view').append(reply_button, archive_button, line, body);
-    
+
+// BUG:
+//inbox.js:208 Fetch failed loading: PUT "http://127.0.0.1:8000/emails/45".
+//(anonymous) @ inbox.js:208
+
     // Archivation Event
     archive_button.addEventListener('click', function() {
-      fetch(`/emails/${email.id}`, {
+      fetch(`/emails/${email.id}`, { // === inbox.js:208 Fetch failed loading
         method: 'PUT',
         body: JSON.stringify({
             archived: !email.archived
         })
       })
-      .then(result => {
-          // Print result
-          console.log(result);
-          load_mailbox('inbox');
-      });
+      .then((response) => response.text())
+      .then((text) => text.length ? JSON.parse(text) : {})
+// return ??
+      .then(load_mailbox('inbox'))
     })
+
 
     // Reply Event
     reply_button.addEventListener('click', function() {
@@ -219,9 +227,8 @@ function view_mail(id) {
         }
     })
   })
-
   // Catch any errors and log them to the console
   .catch(error => {
     console.log('Error:', error);
-  });
+  });    
 };
