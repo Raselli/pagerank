@@ -88,10 +88,9 @@ function send_mail(event) {
   .then(response => response.json())
   .then(result => {
 
-      // Print result
-      console.log(result);
+      // Print result & load mailbox
+      console.log(result) & load_mailbox('sent');
   })
-  .then(load_mailbox('sent'));
   event.preventDefault();  
 };
 
