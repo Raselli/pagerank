@@ -154,7 +154,7 @@ function view_mail(id) {
       
         // Pre-fill the composition fields
         document.querySelector('#compose-recipients').value = email.sender;
-        document.querySelector('#compose-body').value = `On ${email.timestamp} ${email.sender} wrote:\n${email.body}`;
+        document.querySelector('#compose-body').value = `\nOn ${email.timestamp} ${email.sender} wrote:\n${email.body}\n`;
         if (email.subject.substring(0, 4) == 'Re: ') {
           document.querySelector('#compose-subject').value = email.subject;
         } else {
